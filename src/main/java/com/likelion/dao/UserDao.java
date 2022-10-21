@@ -17,14 +17,13 @@ public class UserDao {
         this.cm = cm;
     }
 
-    public void deleteAll() {
-
+    public void jdbcContextWithStatementStrategy(StatementStrategy stmt){
         Connection c = null;
         PreparedStatement ps = null;
 
         try {
             c = cm.makeConnection();
-            ps = c.prepareStatement("DELETE FROM users");
+            ps = stmt.makePreparedStatement(c);
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -40,6 +39,10 @@ public class UserDao {
                 } catch (SQLException e) {
                 }
         }
+    }
+    public void deleteAll() {
+        StatementStrategy statementStrategy = new DeleteAllStrategy();
+        jdbcContextWithStatementStrategy(statementStrategy);
     }
 
     public int getCount() {
@@ -75,26 +78,8 @@ public class UserDao {
     }
 
     public void add(User user) {
-        Map<String, String> env = System.getenv();
-        try {
-            // DB접속 (ex sql workbeanch실행)
-            Connection c = cm.makeConnection();
-
-            // Query문 작성
-            PreparedStatement pstmt = c.prepareStatement("INSERT INTO users(id, name, password) VALUES(?,?,?);");
-            pstmt.setString(1, user.getId());
-            pstmt.setString(2, user.getName());
-            pstmt.setString(3, user.getPassword());
-
-            // Query문 실행
-            pstmt.executeUpdate();
-
-            pstmt.close();
-            c.close();
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        AddStrategy addStrategy = new AddStrategy(user);
+        jdbcContextWithStatementStrategy(addStrategy);
     }
 
     public User findById(String id) {
