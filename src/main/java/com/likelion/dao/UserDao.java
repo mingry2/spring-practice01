@@ -17,6 +17,63 @@ public class UserDao {
         this.cm = cm;
     }
 
+    public void deleteAll() {
+
+        Connection c = null;
+        PreparedStatement ps = null;
+
+        try {
+            c = cm.makeConnection();
+            ps = c.prepareStatement("DELETE FROM users");
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if(ps != null)
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                }
+            if(c != null)
+                try {
+                    c.close();
+                } catch (SQLException e) {
+                }
+        }
+    }
+
+    public int getCount() {
+        Connection c = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            c = cm.makeConnection();
+            ps = c.prepareStatement("select count(*) from users");
+            rs = ps.executeQuery();
+            rs.next();
+            return rs.getInt(1);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if(rs != null)
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                }
+            if(ps != null)
+                try {
+                    ps.close();
+                } catch (SQLException e) {
+                }
+            if(c != null)
+                try {
+                    c.close();
+                } catch (SQLException e) {
+                }
+        }
+    }
+
     public void add(User user) {
         Map<String, String> env = System.getenv();
         try {
@@ -70,8 +127,9 @@ public class UserDao {
 
     public static void main(String[] args) {
         UserDao userDao = new UserDao();
-//        userDao.add();
+        userDao.add(new User("2","BBB","2222"));
         User user = userDao.findById("6");
         System.out.println(user.getName());
+        userDao.deleteAll();
     }
 }
